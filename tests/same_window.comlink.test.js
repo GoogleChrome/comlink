@@ -301,6 +301,18 @@ describe("Comlink in the same realm", function () {
     expect(await instance.counter).to.equal(2);
   });
 
+  it("can work with Function.call", async function () {
+    const thing = Comlink.wrap(this.port1);
+    Comlink.expose((a, b) => a + b, this.port2);
+    expect(await thing.call(null, 1, 3)).to.equal(4);
+  });
+
+  it("can work with Function.apply", async function () {
+    const thing = Comlink.wrap(this.port1);
+    Comlink.expose((a, b) => a + b, this.port2);
+    expect(await thing.apply(null, [1, 3])).to.equal(4);
+  });
+
   it("can work with class instance getters", async function () {
     const thing = Comlink.wrap(this.port1);
     Comlink.expose(SampleClass, this.port2);
@@ -439,14 +451,14 @@ describe("Comlink in the same realm", function () {
     const thing = Comlink.wrap(this.port1);
     const obj = {
       onready: null,
-      call() {
+      run() {
         this.onready();
       },
     };
     Comlink.expose(obj, this.port2);
 
     thing.onready = Comlink.proxy(() => done());
-    thing.call();
+    thing.run();
   });
 
   it("will wrap marked parameter values, simple function", async function () {
